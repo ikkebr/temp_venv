@@ -192,3 +192,15 @@ cython_debug/
 #  refer to https://docs.cursor.com/context/ignore-files
 .cursorignore
 .cursorindexingignore
+
+# Added from baseline review
+# Virtual environment specific
+pip-wheel-metadata/
+
+# Build artifacts
+MANIFEST.in
+
+# Editor specific backup files
+*.swp
+*.swo
+*~
