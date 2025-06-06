@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "temp-venv"
-version = "0.1.1" # Initial version
+version = "0.1.2"
 authors = [
   { name="Henrique Pereira", email="ikkibr@gmail.com" }, # Placeholder
 ]
@@ -34,8 +34,3 @@ Issues = "https://github.com/ikkebr/temp_venv/issues" # Placeholder
 # Specify the module to be included
 # [tool.setuptools] # This was an older way, standard is now project.pyfiles or similar
 # py-modules = ["temp_venv"] # For single file modules
-
-[tool.setuptools.packages.find]
-where = ["."]
-include = ["temp_venv*"] # This will correctly include temp_venv.py as a top-level module
-# If temp_venv.py was inside a src directory, where would be ["src"]
