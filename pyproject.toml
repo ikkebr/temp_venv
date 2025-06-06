@@ -32,5 +32,6 @@ Homepage = "https://github.com/ikkebr/temp_venv" # Placeholder, assuming this re
 Issues = "https://github.com/ikkebr/temp_venv/issues" # Placeholder
 
 # Specify the module to be included
-# [tool.setuptools] # This was an older way, standard is now project.pyfiles or similar
-# py-modules = ["temp_venv"] # For single file modules
+[tool.setuptools] # This was an older way, standard is now project.pyfiles or similar
+py-modules = ["temp_venv"] # For single file modules
+
