@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "temp_venv"
+version = "0.1.0" # Initial version
+authors = [
+  { name="Henrique Pereira", email="ikkibr@gmail.com" }, # Placeholder
+]
+description = "A context manager for temporary Python virtual environments with extensive configuration options."
+readme = "README.md"
+requires-python = ">=3.9" # Based on f-strings, type hints, contextlib etc.
+license = { file = "LICENSE" }
+classifiers = [
+    "Development Status :: 4 - Beta", # Or 3 - Alpha
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Testing",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "License :: OSI Approved :: GNU General Public License v2 (GPLv2)",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: OS Independent",
+]
+keywords = ["venv", "virtualenv", "temporary", "context manager", "testing", "isolation", "automation"]
+
+[project.urls]
+Homepage = "https://github.com/ikkebr/temp_venv" # Placeholder, assuming this repo name
+Issues = "https://github.com/ikkebr/temp_venv/issues" # Placeholder
+
+# Specify the module to be included
+# [tool.setuptools] # This was an older way, standard is now project.pyfiles or similar
+# py-modules = ["temp_venv"] # For single file modules
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["temp_venv*"] # This will correctly include temp_venv.py as a top-level module
+# If temp_venv.py was inside a src directory, where would be ["src"]
