@@ -6,7 +6,7 @@ A context manager that creates a temporary Python virtual environment, optionall
 You can install `temp-venv` from PyPI using pip:
 
 ```bash
-pip install temp_venv
+pip install temp-venv
 ```
 
 ## Temporary Virtual Environment Context Manager (`TempVenv`)
