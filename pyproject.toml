@@ -31,7 +31,6 @@ keywords = ["venv", "virtualenv", "temporary", "context manager", "testing", "is
 Homepage = "https://github.com/ikkebr/temp_venv" # Placeholder, assuming this repo name
 Issues = "https://github.com/ikkebr/temp_venv/issues" # Placeholder
 
-# Specify the module to be included
-[tool.setuptools] # This was an older way, standard is now project.pyfiles or similar
-py-modules = ["temp_venv"] # For single file modules
+[tool.setuptools.packages.find]
+exclude = ["test_temp_venv*"]
 
