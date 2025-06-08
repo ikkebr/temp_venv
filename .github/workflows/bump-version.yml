@@ -1,0 +1,95 @@
+name: Increment Version
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch: # Allows manual triggering
+
+jobs:
+  increment_version:
+    # Prevent workflow runs from commits by this workflow itself or if [skip ci] or [skip version] is in the commit message
+    if: |
+      !contains(github.event.head_commit.message, '[skip ci]') &&
+      !contains(github.event.head_commit.message, '[skip version]') &&
+      github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          # Fetch all history so we can get previous tags
+          fetch-depth: 0
+          # This token is provided by Actions, you do not need to create your own token
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x' # Use a recent Python version
+
+      - name: Increment version, commit, and tag
+        id: increment_version # Added id to reference outputs
+        env:
+          # GITHUB_TOKEN is automatically available
+          # GITHUB_ACTOR is the user who triggered the workflow (or the app if it's an app)
+          # For commits made by the workflow, we want a dedicated bot user.
+          # However, actions/checkout already uses the GITHUB_TOKEN for auth.
+          # We will configure git user details manually.
+          GIT_COMMITTER_NAME: "github-actions[bot]"
+          GIT_COMMITTER_EMAIL: "github-actions[bot]@users.noreply.github.com"
+          GIT_AUTHOR_NAME: "github-actions[bot]"
+          GIT_AUTHOR_EMAIL: "github-actions[bot]@users.noreply.github.com"
+        run: |
+          import re
+          import os
+          
+          version_file = "pyproject.toml"
+          version_regex = r'^version\s*=\s*["'](\d+\.\d+\.\d+)["']'
+          new_version_string = ""
+          
+          with open(version_file, "r") as f:
+              content = f.read()
+          
+          match = re.search(version_regex, content, re.MULTILINE)
+          if not match:
+              print(f"Error: Could not find version string in {version_file}")
+              exit(1)
+          
+          current_version = match.group(1)
+          major, minor, patch = map(int, current_version.split('.'))
+          patch += 1
+          new_version = f"{major}.{minor}.{patch}"
+          
+          print(f"Current version: {current_version}")
+          print(f"New version: {new_version}")
+          
+          updated_content = re.sub(version_regex, f'version = "{new_version}"', content, count=1, flags=re.MULTILINE)
+          
+          with open(version_file, "w") as f:
+              f.write(updated_content)
+          
+          # Set git config
+          os.system(f"git config user.name '{os.environ['GIT_COMMITTER_NAME']}'")
+          os.system(f"git config user.email '{os.environ['GIT_COMMITTER_EMAIL']}'")
+
+          # Add and commit the change
+          os.system(f"git add {version_file}")
+          commit_message = f"chore: Increment version to {new_version} [skip ci]"
+          os.system(f"git commit -m '{commit_message}'")
+          
+          # Create tag
+          tag_name = f"v{new_version}"
+          os.system(f"git tag {tag_name}")
+          
+          # Push commit and tag
+          # The GITHUB_TOKEN has permissions to push to the repository
+          # when the action is triggered by a push event.
+          os.system("git push origin main") 
+          os.system(f"git push origin {tag_name}")
+
+          print(f"::set-output name=new_version::{new_version}")
+        shell: python # Run this script with Python
+
+      - name: New version
+        run: echo "Incremented version to ${{ steps.increment_version.outputs.new_version }}"
