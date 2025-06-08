@@ -112,7 +112,10 @@ class TestTempVenv(unittest.TestCase):
             subprocess.run([venv_python, "-c", "import pyjokes; print(pyjokes.get_joke())"], check=True)
 
     def test_venv_options(self):
-        with TempVenv(packages=["tinydb"], venv_options=["--copies"]) as venv_python:
+        # Changed from --copies to --seed as uv does not support --copies
+        # If --seed also fails, this test might need to be simplified to not use venv_options
+        # or find a valid uv venv option.
+        with TempVenv(packages=["tinydb"], venv_options=["--seed"]) as venv_python:
             self.assertTrue(Path(venv_python).is_file())
             subprocess.run([venv_python, "-c", "import tinydb; print(tinydb.__version__)"], check=True)
 
@@ -167,22 +170,25 @@ class TestTempVenv(unittest.TestCase):
 
         expected_phrases = [
             "Creating temporary directory", "Found suitable Python executable",
-            "Creating virtual environment using", "Running command for venv creation:",
-            "-m venv --without-pip",
-            "ensure_pip is True", # Part of the new logic
-            "downloading get-pip.py", "installing pip with get-pip.py",
-            "upgrading pip, setuptools, wheel",
-            f"Installing specified packages: {package_to_install}", # Adjusted for current log
-            f"-m pip install {package_to_install}",
+            "Creating virtual environment using uv", "Running command for uv venv creation:",
+            "uv venv", # Check for 'uv venv' command
+            f"Installing specified packages using uv: {package_to_install}",
+            "uv pip install", # Check for 'uv pip install' command
+            package_to_install, # Ensure package name is in the command
             "Cleaning up temporary directory"
         ]
+        # Check if the python executable is passed to uv
+        if sys.executable: # On some systems sys.executable might be None
+            expected_phrases.append(f"--python {sys.executable}")
+
         for phrase in expected_phrases:
-            self.assertIn(phrase, output)
+            self.assertIn(phrase, output, f"Expected phrase '{phrase}' not found in verbose output:\n{output}")
 
     def test_verbose_output_cleanup_false(self):
         stdout_capture = io.StringIO()
         temp_dir_path = None
-        venv_manager = TempVenv(verbose=True, cleanup=False)
+        # Pass sys.executable to python_executable for consistency in verbose output checks
+        venv_manager = TempVenv(verbose=True, cleanup=False, python_executable=sys.executable)
         try:
             with contextlib.redirect_stdout(stdout_capture):
                 with venv_manager as venv_executable_path:
@@ -197,49 +203,11 @@ class TestTempVenv(unittest.TestCase):
                 if self.get_verbose_setting_from_env(): print(f"Manually cleaning up {temp_dir_path} for test_verbose_output_cleanup_false")
                 shutil.rmtree(temp_dir_path)
 
-    def test_ensure_pip_false_no_pip_initially(self):
-        package_to_try_install = "six"
-        # Capture stdout to check verbose messages
-        stdout_capture = io.StringIO()
-        with contextlib.redirect_stdout(stdout_capture):
-            with TempVenv(ensure_pip=False, packages=[package_to_try_install], verbose=True) as venv_python_path:
-                self.assertTrue(Path(venv_python_path).is_file())
-                pip_check_command = [venv_python_path, "-m", "pip", "--version"]
-                result = subprocess.run(pip_check_command, capture_output=True, text=True)
-                self.assertNotEqual(result.returncode, 0)
-                self.assertIn("no module named pip", result.stderr.lower(), f"stderr: {result.stderr}")
-                import_script = f"import {package_to_try_install}"
-                import_result = subprocess.run([venv_python_path, "-c", import_script], capture_output=True, text=True)
-                self.assertNotEqual(import_result.returncode, 0)
-                self.assertIn("ModuleNotFoundError", import_result.stderr)
-        output = stdout_capture.getvalue()
-        self.assertIn("ensure_pip is False. Skipping pip download, installation, and upgrade.", output)
-        self.assertIn("Skipping package installation because pip is not available", output)
-
-
-    def test_ensure_pip_true_explicitly(self):
-        package_to_install = "pyjokes"
-        with TempVenv(ensure_pip=True, packages=[package_to_install], verbose=True) as venv_python_path:
-            self.assertTrue(Path(venv_python_path).is_file())
-            pip_check_command = [venv_python_path, "-m", "pip", "--version"]
-            result = subprocess.run(pip_check_command, capture_output=True, text=True, check=True)
-            self.assertIn("pip", result.stdout.lower())
-            self.assertTrue(any(char.isdigit() for char in result.stdout))
-            script = f"import {package_to_install}; print({package_to_install}.get_joke())"
-            pkg_run_result = subprocess.run([venv_python_path, "-c", script], capture_output=True, text=True, check=True)
-            self.assertTrue(len(pkg_run_result.stdout.strip()) > 0)
-
-    def test_ensure_pip_false_with_existing_pip_in_base_venv(self):
-        # This test's behavior depends on whether the system's 'venv' module, when run with
-        # '--without-pip', *truly* excludes pip. If it doesn't, this test would change meaning.
-        # Assuming '--without-pip' works as advertised, pip should not be present.
-        with TempVenv(ensure_pip=False, verbose=True) as venv_python_path: # No packages needed
-            self.assertTrue(Path(venv_python_path).is_file())
-            pip_check_command = [venv_python_path, "-m", "pip", "--version"]
-            result = subprocess.run(pip_check_command, capture_output=True, text=True)
-            self.assertNotEqual(result.returncode, 0, "pip should not be present with ensure_pip=False and venv created --without-pip.")
-            # This is the corrected assertion string
-            self.assertIn("no module named pip", result.stderr.lower(), f"stderr: {result.stderr}")
+# Removed ensure_pip related tests:
+# - test_ensure_pip_false_no_pip_initially
+# - test_ensure_pip_true_explicitly
+# - test_ensure_pip_false_with_existing_pip_in_base_venv
+# These are no longer relevant as uv handles its own package management capabilities.
 
 if __name__ == '__main__':
     # Add a way to pass verbosity from environment for make test_verbose
