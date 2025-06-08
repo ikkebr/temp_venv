@@ -34,14 +34,11 @@ Constructs a `TempVenv` object.
 *   `venv_options: Optional[List[str]] = None`: A list of additional options to pass to the `venv` creation command (e.g., `["--copies"]`). Defaults to `None`.
 *   `requirements_file: Optional[str] = None`: Path to a `requirements.txt` file from which to install packages. Defaults to `None`.
 *   `verbose: bool = False`: If `True`, enables verbose output, printing commands executed and their results to stdout/stderr. Useful for debugging. Defaults to `False`.
-*   `ensure_pip: bool = True`: If `True`, ensure pip is installed (via get-pip.py if needed). If False, skip pip installation/upgrade. Defaults to `True`.
 
 ### Prerequisites
 
 -   Python 3.9+
--   `venv` module (usually part of the standard Python installation)
--   `pip` (will be installed in the venv if `--without-pip` is used for venv creation, as handled by the script)
--   `curl` (for the `get-pip.py` bootstrap method used in `temp_venv.py`)
+-   `uv`
 
 ### Usage
 
