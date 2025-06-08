@@ -171,15 +171,27 @@ class TestTempVenv(unittest.TestCase):
         expected_phrases = [
             "Creating temporary directory", "Found suitable Python executable",
             "Creating virtual environment using uv", "Running command for uv venv creation:",
-            "uv venv", # Check for 'uv venv' command
+            "-m uv venv", # Check for 'python -m uv venv' command
             f"Installing specified packages using uv: {package_to_install}",
-            "uv pip install", # Check for 'uv pip install' command
+            "-m uv pip install", # Check for 'python -m uv pip install' command
             package_to_install, # Ensure package name is in the command
             "Cleaning up temporary directory"
         ]
-        # Check if the python executable is passed to uv
+        # Check if the python executable is passed to uv (as an argument to uv)
+        # This part of the command logged by _run_subprocess for uv itself.
+        # The actual base_python used by TempVenv._find_python_executable() might be sys.executable or another one.
+        # For the verbose log of 'uv venv' or 'uv pip install', the --python argument to uv will be shown.
+        # If TempVenv is initialized with default python_executable, it's likely to be sys.executable.
+        # So, this check remains relevant for the arguments passed TO uv.
         if sys.executable: # On some systems sys.executable might be None
-            expected_phrases.append(f"--python {sys.executable}")
+            # This checks that uv is being TOLD to use a python, e.g. "... uv venv ... --python /path/to/python"
+            # or "... uv pip install ... --python /path/to/venv/python"
+            # The test logic might need adjustment if the specific python path logged (sys.executable vs venv_python)
+            # for the --python arg is critical and varies between venv creation and pip install.
+            # For venv creation, it's base_python. For pip install, it's venv_python_executable.
+            # The current test structure adds sys.executable to expected_phrases once.
+            # This is likely checking the --python arg for the venv creation.
+            expected_phrases.append(f"--python {sys.executable}") # This checks the argument to uv
 
         for phrase in expected_phrases:
             self.assertIn(phrase, output, f"Expected phrase '{phrase}' not found in verbose output:\n{output}")

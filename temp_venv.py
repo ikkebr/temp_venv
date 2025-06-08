@@ -57,7 +57,7 @@ class TempVenv:
                     cmd = [executable, "--version"]
                     if self.verbose:
                         print(f"Attempting to use Python executable: {executable} by checking version.")
-                    self._run_subprocess(cmd, "Checking Python version")
+                    self._run_subprocess(cmd, "Checking Python version", python_executable_for_module=None)
                     if self.verbose:
                         print(f"Found suitable Python executable: {executable}")
                     return executable
@@ -66,7 +66,9 @@ class TempVenv:
                         print(f"Failed to use '{executable}': {e}")
         raise RuntimeError("Could not find a suitable Python executable.")
 
-    def _run_subprocess(self, command: List[str], description: str, check: bool = True, capture_output: bool = True, text: bool = True, extra_env: Optional[dict] = None) -> subprocess.CompletedProcess:
+    def _run_subprocess(self, command: List[str], description: str, check: bool = True, capture_output: bool = True, text: bool = True, extra_env: Optional[dict] = None, python_executable_for_module: Optional[str] = None) -> subprocess.CompletedProcess:
+        if python_executable_for_module:
+            command = [python_executable_for_module, "-m"] + command
         if self.verbose:
             print(f"Running command for {description}: {' '.join(command)}")
         env = os.environ.copy()
@@ -97,7 +99,7 @@ class TempVenv:
             venv_creation_command = ["uv", "venv", str(temp_dir_path), "--python", base_python]
             if self.venv_options:
                 venv_creation_command.extend(self.venv_options)
-            self._run_subprocess(venv_creation_command, "uv venv creation")
+            self._run_subprocess(venv_creation_command, "uv venv creation", python_executable_for_module=base_python)
 
             if os.name == "nt":
                 self.venv_python_executable = temp_dir_path / "Scripts" / "python.exe"
@@ -123,7 +125,7 @@ class TempVenv:
                     # For safety, explicitly using the venv's uv/pip might be better if uv installs itself there.
                     # For now, assume 'uv' is in PATH and context-aware or can be directed.
                     cmd = ["uv", "pip", "install"] + self.pip_options + ["-r", self.requirements_file, "--python", str(self.venv_python_executable)]
-                    self._run_subprocess(cmd, f"uv installing from {self.requirements_file}")
+                    self._run_subprocess(cmd, f"uv installing from {self.requirements_file}", python_executable_for_module=base_python)
                     install_commands_run = True
                 else:
                     if self.verbose:
@@ -133,7 +135,7 @@ class TempVenv:
                 if self.verbose:
                     print(f"Installing specified packages using uv: {', '.join(packages_to_install)}")
                 cmd = ["uv", "pip", "install"] + self.pip_options + packages_to_install + ["--python", str(self.venv_python_executable)]
-                self._run_subprocess(cmd, "uv installing packages")
+                self._run_subprocess(cmd, "uv installing packages", python_executable_for_module=base_python)
                 install_commands_run = True
 
             if not install_commands_run and self.verbose:
