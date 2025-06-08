@@ -45,7 +45,7 @@ jobs:
           import os
           
           version_file = "pyproject.toml"
-          version_regex = r'^version\s*=\s*["'](\d+\.\d+\.\d+)["']'
+          version_regex = r'version\s*=\s*(["\'])(\d+\.\d+\.\d+)\1'
           new_version_string = ""
           
           with open(version_file, "r") as f:
