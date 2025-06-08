@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "temp-venv"
-version = "0.1.2.1"
+version = "0.2.0"
 authors = [
   { name="Henrique Pereira", email="ikkibr@gmail.com" }, # Placeholder
 ]
@@ -26,6 +26,11 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 keywords = ["venv", "virtualenv", "temporary", "context manager", "testing", "isolation", "automation"]
+
+dependencies = [
+    "uv",
+]
+
 
 [project.urls]
 Homepage = "https://github.com/ikkebr/temp_venv" # Placeholder, assuming this repo name

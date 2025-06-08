@@ -28,6 +28,10 @@ jobs:
         # No external dependencies needed to run the tests themselves yet
         # If test_temp_venv.py started using, e.g., pytest, it would be installed here.
 
+    - name: Install uv
+      run: |
+        pip install uv
+
     - name: Run tests
       run: |
         python -m unittest discover -s . -p "test_temp_venv.py"
