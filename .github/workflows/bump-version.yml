@@ -56,7 +56,7 @@ jobs:
               print(f"Error: Could not find version string in {version_file}")
               exit(1)
           
-          current_version = match.group(1)
+          current_version = match.group(2)
           major, minor, patch = map(int, current_version.split('.'))
           patch += 1
           new_version = f"{major}.{minor}.{patch}"
