@@ -157,7 +157,7 @@ try:
         requirements_file=requirements_filename,
         packages=["six"], # Also add 'six' from packages list
         pip_options=["--no-cache-dir"],
-        venv_options=["--copies"], # Use --copies instead of --system-site-packages for easier testing
+        # venv_options=["--copies"], # Removed: --copies is not supported by uv venv
         verbose=True,
         cleanup=True
     ) as venv_python:
